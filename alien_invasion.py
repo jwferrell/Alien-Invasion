@@ -10,6 +10,7 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from button import Button
+from explosion import Explosion
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -29,8 +30,6 @@ class AlienInvasion:
         #   and create a scoreboard.
         self.stats = GameStats(self)
         self.sb = Scoreboard(self)
-
-
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
@@ -51,6 +50,9 @@ class AlienInvasion:
         # Make the Play button.
         self.play_button = Button(self, "Play")
 
+        #Set explosion when aliens are hit
+        self.explosions = pygame.sprite.Group()
+
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -64,6 +66,7 @@ class AlienInvasion:
             
             self._update_screen()
             self.clock.tick(60)
+            self.explosions.update()
 
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
@@ -92,11 +95,24 @@ class AlienInvasion:
             self.stats.level += 1
             self.sb.prep_level()
 
+        #Spawn explosion is alien is hit.
         if collisions:
-            for aliens in collisions.values():
-                self.stats.score += self.settings.alien_points * len(aliens)
+            for alien_list in collisions.values():
+                for alien in alien_list:
+
+                    explosion = Explosion(self, alien.rect.center)
+                    self.explosions.add(explosion)
+
+                    self.stats.score += self.settings.alien_points
             self.sb.prep_score()
             self.sb.check_high_score()
+
+        if not self.aliens:
+            self.bullets.empty()
+            self._create_fleet()
+            self.settings.increase_speed()
+            self.stats.level += 1
+            self.sb.prep_level()
 
     def _check_events(self):
         """Respond to keypresses and mouse events."""
@@ -167,6 +183,10 @@ class AlienInvasion:
             bullet.draw_bullet()
         self.ship.blitme()
         self.aliens.draw(self.screen)
+
+        # Draw explosion when aliens are hit.
+        for explosion in self.explosions.sprites():
+            explosion.draw()
 
         # Draw the score info.
         self.sb.show_score()
