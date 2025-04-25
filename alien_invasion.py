@@ -39,6 +39,11 @@ class AlienInvasion:
 
         # Set the background color.
         self.bg_color = (230, 230, 230)
+        self.bg_image = pygame.image.load("images/background.jpg")  # adjust filename as needed
+        self.bg_image = pygame.transform.scale(
+            self.bg_image,
+            (self.settings.screen_width, self.settings.screen_height)
+        )
 
         # Start Alien Invasion in an inactive state.
         self.game_active = False
@@ -157,7 +162,7 @@ class AlienInvasion:
 
     def _update_screen(self):
         """Update images on the screen and flip to the new screen."""
-        self.screen.fill(self.bg_color)
+        self.screen.blit(self.bg_image, (0, 0))
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.ship.blitme()
